@@ -119,7 +119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1908f03d521640744a5263da911cda63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: 0}
+  projectilePrefab: {fileID: 6734960053217403233, guid: c4a41c9ea4d078b4c8ca2e0d587994ad, type: 3}
   shootPoint: {fileID: 0}
   shootForce: 10
 --- !u!1 &4017348283439880427
