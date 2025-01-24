@@ -22,6 +22,9 @@ public class AssaultRifle : MonoBehaviour
     public float spreadIncreaseRate = 0.5f; // Rate at which spread increases
     public float spreadResetRate = 2f; // Rate at which spread resets when not firing
 
+    [Header("Damage Settings")]
+    public float bulletDamage = 20f; // Damage dealt by each bullet
+
     private int currentAmmo; // Current bullets in the magazine
     private float nextFireTime = 0f; // Time when the rifle can fire again
     private bool isReloading = false; // Flag to check if the rifle is reloading
@@ -30,33 +33,25 @@ public class AssaultRifle : MonoBehaviour
 
     void Start()
     {
-        // Initialize the ammo count
         currentAmmo = magazineSize;
 
-        // Add an AudioSource component to the rifle if not already present
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
 
-        // Initialize spread
         currentSpread = spreadAngle;
     }
 
     void Update()
     {
-        // Fire weapon when the left mouse button is held down
-        if (isReloading)
-        {
-            return; // Do nothing while reloading
-        }
+        if (isReloading) return;
 
         if (Input.GetButton("Fire1") && Time.time >= nextFireTime && currentAmmo > 0)
         {
             Fire();
 
-            // Increase spread if the mechanic is enabled
             if (isSpreadIncreasing)
             {
                 currentSpread = Mathf.Min(currentSpread + spreadIncreaseRate, maxSpreadAngle);
@@ -64,11 +59,9 @@ public class AssaultRifle : MonoBehaviour
         }
         else
         {
-            // Gradually reset spread when not firing
             currentSpread = Mathf.Max(currentSpread - spreadResetRate * Time.deltaTime, spreadAngle);
         }
 
-        // Reload if the reload button ("R") is pressed or the magazine is empty
         if (Input.GetKeyDown(KeyCode.R) || currentAmmo == 0)
         {
             StartCoroutine(Reload());
@@ -77,74 +70,71 @@ public class AssaultRifle : MonoBehaviour
 
     void Fire()
     {
-        nextFireTime = Time.time + fireRate; // Set the next available fire time
+        nextFireTime = Time.time + fireRate;
 
-        // Apply spread to the bullet's direction
         Vector3 spreadDirection = ApplySpread(bulletSpawnPoint.forward);
 
-        // Spawn the bullet
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, Quaternion.LookRotation(spreadDirection));
+
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.velocity = spreadDirection * bulletSpeed;
+            rb.velocity = spreadDirection * bulletSpeed; // Apply velocity to the bullet
         }
 
-        // Play muzzle flash
+        ARBullet bulletScript = bullet.GetComponent<ARBullet>();
+        if (bulletScript != null)
+        {
+            bulletScript.SetDamage(bulletDamage);
+
+            // Ignore collision with the player or gun
+            Collider bulletCollider = bullet.GetComponent<Collider>();
+            Collider gunCollider = GetComponent<Collider>();
+            if (bulletCollider != null && gunCollider != null)
+            {
+                Physics.IgnoreCollision(bulletCollider, gunCollider);
+            }
+        }
+
         if (muzzleFlash != null)
         {
             muzzleFlash.Play();
         }
 
-        // Play shooting sound
         if (shootSound != null)
         {
             audioSource.PlayOneShot(shootSound);
         }
 
-        // Decrease ammo count after each shot
         currentAmmo--;
-
-        // Destroy the bullet after a few seconds
         Destroy(bullet, 2f);
     }
 
     Vector3 ApplySpread(Vector3 baseDirection)
     {
-        // Randomize spread angle within the current spread range
         float xSpread = Random.Range(-currentSpread, currentSpread);
         float ySpread = Random.Range(-currentSpread, currentSpread);
-
-        // Apply spread to the base direction
         Quaternion spreadRotation = Quaternion.Euler(xSpread, ySpread, 0);
         return spreadRotation * baseDirection;
     }
 
     IEnumerator Reload()
     {
-        if (currentAmmo == magazineSize || isReloading)
-        {
-            yield break; // Skip reload if already full or reloading
-        }
+        if (currentAmmo == magazineSize || isReloading) yield break;
 
         isReloading = true;
 
-        // Play reload sound
         if (reloadSound != null)
         {
             audioSource.PlayOneShot(reloadSound);
         }
 
-        // Wait for reload time
         yield return new WaitForSeconds(reloadTime);
 
-        // Refill the ammo
         currentAmmo = magazineSize;
-
         isReloading = false;
     }
 
-    // For debugging: Display current ammo and spread in the console
     void OnGUI()
     {
         GUILayout.Label($"Ammo: {currentAmmo} / {magazineSize}");

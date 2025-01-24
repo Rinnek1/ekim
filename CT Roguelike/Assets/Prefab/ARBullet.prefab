@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7709377706957120091}
   - component: {fileID: 5350896062228170574}
   - component: {fileID: 3815888988059181766}
+  - component: {fileID: 4676686529219749642}
   m_Layer: 0
   m_Name: ARBullet
   m_TagString: Untagged
@@ -100,7 +101,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -133,3 +134,15 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &4676686529219749642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3511686566504887257}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1803c7e302065b040885401e5ca0e32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
