@@ -6,7 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
     public float moveSpeed = 5f; // Normal movement speed
-    public float sprintSpeed = 8f; // Sprint speed
+    public float sprintMultiplier = 1.6f; // Sprint multiplier for moveSpeed
     public float rotationSpeed = 720f; // Rotation speed in degrees per second
     public KeyCode sprintKey = KeyCode.LeftShift; // Key to sprint
     public KeyCode moveForwardKey = KeyCode.W; // Custom forward key
@@ -72,6 +72,16 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
+        // Get the camera's forward and right directions
+        Vector3 cameraForward = Camera.main.transform.forward;
+        Vector3 cameraRight = Camera.main.transform.right;
+
+        // Ensure the forward and right vectors are flattened (no vertical movement)
+        cameraForward.y = 0f;
+        cameraRight.y = 0f;
+        cameraForward.Normalize();
+        cameraRight.Normalize();
+
         // Determine movement direction based on input
         float moveX = 0f;
         float moveZ = 0f;
@@ -81,18 +91,19 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKey(moveLeftKey)) moveX -= 1f;
         if (Input.GetKey(moveRightKey)) moveX += 1f;
 
-        Vector3 moveDirection = new Vector3(moveX, 0f, moveZ).normalized;
+        // Calculate the direction relative to the camera
+        Vector3 moveDirection = cameraForward * moveZ + cameraRight * moveX;
 
         if (moveDirection.magnitude >= 0.1f)
         {
-            // Determine current speed based on sprint state
-            float speed = isSprinting ? sprintSpeed : moveSpeed;
+            // Determine current speed based on sprint state (moveSpeed is the base speed)
+            float speed = moveSpeed * (isSprinting ? sprintMultiplier : 1f);
 
-            // Move the capsule
+            // Move the player
             Vector3 targetPosition = rb.position + moveDirection * speed * Time.fixedDeltaTime;
             rb.MovePosition(targetPosition);
 
-            // Rotate the capsule to face the movement direction
+            // Rotate the player to face the movement direction
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
             rb.MoveRotation(Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
         }
